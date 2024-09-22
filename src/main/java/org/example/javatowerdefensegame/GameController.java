@@ -1,12 +1,15 @@
 package org.example.javatowerdefensegame;
 
 import javafx.animation.AnimationTimer;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameController {
+    Image zombieWalk = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\zombie_walk.png");
+    Image zombie = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\zombie.png");
     private Pane gamePane;
     private List<Enemy> enemies = new ArrayList<>();
     private static final double TILE_SIZE = 40; // Size of each tile in pixels
@@ -29,7 +32,7 @@ public class GameController {
 
     private void startGame() {
         // Initialize enemies and add them to the pane
-        Enemy enemy = new Enemy(0, 9 * TILE_SIZE, 2.0, PATH);
+        Enemy enemy = new Enemy(0, 9 * TILE_SIZE, 2.0, PATH,zombie,zombieWalk);
         enemies.add(enemy);
         gamePane.getChildren().add(enemy);
 

@@ -1,24 +1,32 @@
 package org.example.javatowerdefensegame;
 
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
-public class Enemy extends Rectangle {
-    private double health;
+public class Enemy extends ImageView {
     private double speed;
     private int currentPathIndex;
     private double[][] path;
     private boolean reachedEnd = false;
 
-    public double getSpeed() {
-        return speed;
-    }
+    // Add the new fields for animation
+    private Image zombie;
+    private Image zombieWalk;
+    private boolean walkingFrame = false;
+    private int animationCounter = 0; // Counter to control the animation speed
 
-    public Enemy(double startX, double startY, double speed, double[][] path) {
-        super(20, 20, Color.RED); // Example size and color
+    // Updated constructor to accept both images
+    public Enemy(double startX, double startY, double speed, double[][] path, Image zombie, Image zombieWalk) {
+        super(zombie);
         this.speed = speed;
         this.path = path;
+        this.zombie = zombie;
+        this.zombieWalk = zombieWalk;
         this.currentPathIndex = 0;
+
+        setFitWidth(64);  // Set the width of the image (optional, depending on your needs)
+        setFitHeight(64); // Set the height of the image (optional, depending on your needs)
+        setPreserveRatio(true);
         setX(startX);
         setY(startY);
     }
@@ -46,6 +54,20 @@ public class Enemy extends Rectangle {
                 setX(getX() + dx / distance * speed);
                 setY(getY() + dy / distance * speed);
             }
+
+            // Update the animation frame
+            updateAnimation();
+        }
+    }
+
+    // Method to toggle the images to simulate walking animation
+    private void updateAnimation() {
+        animationCounter++;
+
+        // Change image every few frames (adjust the value to control animation speed)
+        if (animationCounter % 45 == 0) {
+            walkingFrame = !walkingFrame; // Toggle the walking frame
+            setImage(walkingFrame ? zombieWalk : zombie);
         }
     }
 
