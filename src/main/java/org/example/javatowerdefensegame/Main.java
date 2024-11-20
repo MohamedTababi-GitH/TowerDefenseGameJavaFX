@@ -16,7 +16,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Set custom icon
-        Image icon = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\zombie.png");
+        Image icon = new Image("Assets/zombie.png");
         primaryStage.getIcons().add(icon);
 
         // Create the Start Menu
@@ -48,8 +48,8 @@ public class Main extends Application {
         startMenu.getChildren().add(startButton);
         StackPane.setAlignment(startButton, Pos.CENTER);
 
-        Scene startMenuScene = new Scene(startMenu, 800, 760);
-        primaryStage.setTitle("Zombie Tower Defense");
+        Scene startMenuScene = new Scene(startMenu, 880, 760);
+        primaryStage.setTitle("Doomsday-Z");
         primaryStage.setResizable(false);
         primaryStage.setScene(startMenuScene);
         primaryStage.show();
@@ -64,7 +64,7 @@ public class Main extends Application {
                 StackPane gameRoot = new StackPane();
                 gameRoot.getChildren().add(gameBoard);
 
-                Scene gameScene = new Scene(gameRoot, 800, 760); // Adjust scene size as needed
+                Scene gameScene = new Scene(gameRoot, 880, 760); // Adjust scene size as needed
                 primaryStage.setScene(gameScene);
             } catch (Exception e) {
                 e.printStackTrace();

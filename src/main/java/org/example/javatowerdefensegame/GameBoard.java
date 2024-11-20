@@ -2,19 +2,21 @@ package org.example.javatowerdefensegame;
 
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
+import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -26,27 +28,41 @@ import java.util.Map;
 
 public class GameBoard extends Pane {
     private int gold = 5;
-    private int health = 5;
+    private int health = 10;
     Label goldLabel;
     Label healthLabel;
+    private Label waveLabel;
+    private boolean gameOver = false;
     private char[][] tilemap;
     private double tileSize;
     private List<Enemy> enemies = new ArrayList<>();
     private List<Projectile> projectiles = new ArrayList<>();
-    private Timeline spawnTimeline;
+
     private List<Tower> towers = new ArrayList<>();
     private ImageView heartIcon;
     private ImageView coinIcon;
-    Image coinImage = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\resources\\Assets\\gold_coin.png");
+    Image zombieIMG = new Image("Assets/zombie.png");
+    Image coinImage = new Image("Assets/gold_coin.png");
 
-    Image heartImage = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\resources\\Assets\\heart_ic.png");
+    Image heartImage = new Image("Assets/heart_ic.png");
 
-    Image zombie = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\zombie.png");
-    Image veggiesCart = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\resources\\Assets\\veggies_cart.png");
-    Image zombieWalk = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\zombie_walk.png");
-    Image grassImage = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\newGrass2.png");
-    Image slotImage = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\slot1.png");
-    Image pathImage = new Image("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\java\\org\\example\\javatowerdefensegame\\path1.png");
+    Image veggiesCart = new Image("Assets/veggies_cart.png");
+    Image redMoon = new Image("Assets/RedMoonTower.png");
+    Image archerTower = new Image("Assets/Archer.png");
+    Image woodTower = new Image("Assets/woodTower.png");
+    Image zombieWalk = new Image("Assets/zombie_walk.png");
+    Image grassImage = new Image("Assets/grass.png");
+    Image slotImage = new Image("Assets/Circular_Brick.png");
+    Image citySignImage = new Image("Assets/city_sign.png");
+    Image pathImage = new Image("Assets/path.png");
+    Image bomb = new Image("Assets/bomb.png");
+    Image tomato = new Image("Assets/tomato.png");
+    Image rocks = new Image("Assets/rocks.png");
+    Image spark = new Image("Assets/spark.png");
+    Image worm = new Image("Assets/fireWorm.png");
+    Image wormWalk = new Image("Assets/fireWormWalk.png");
+    Image bringer = new Image("Assets/Bringer-of-Death_Walk_1.png");
+    Image bringerWalk = new Image("Assets/Bringer-of-Death_Walk_2.png");
     public GameBoard(char[][] tilemap, double tileSize) {
         this.tilemap = tilemap;
         this.tileSize = tileSize;
@@ -70,31 +86,87 @@ public class GameBoard extends Pane {
         goldLabel = new Label(String.valueOf(gold));
         healthLabel = new Label(String.valueOf(health));
 
-        // Manually position the heart icon and health label
-        heartIcon.setLayoutX(10);   // Set X position of the heart icon
-        heartIcon.setLayoutY(10);   // Set Y position of the heart icon
+        // set position the heart icon and health label
+        heartIcon.setLayoutX(10);
+        heartIcon.setLayoutY(10);
 
-        healthLabel.setLayoutX(60); // Set X position of the health label, to the right of the heart icon
-        healthLabel.setLayoutY(20); // Adjust Y position to vertically align with the heart icon
+        healthLabel.setLayoutX(60);
+        healthLabel.setLayoutY(20);
         healthLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
-        // Manually position the coin icon and gold label
-        coinIcon.setLayoutX(34);    // Set X position of the coin icon
-        coinIcon.setLayoutY(60);    // Set Y position of the coin icon
+      // Set coin icon position
+        coinIcon.setLayoutX(34);
+        coinIcon.setLayoutY(60);
 
         goldLabel.setLayoutX(62);   // Set X position of the gold label, to the right of the coin icon
         goldLabel.setLayoutY(52);   // Align it with the coin icon
         goldLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
 
-        // Add the heart, health, coin, and gold elements directly to the game board
-        getChildren().addAll(heartIcon, healthLabel, coinIcon, goldLabel);
-    }
 
+        waveLabel = new Label("Wave 1");
+        waveLabel.setLayoutX(380); // Center horizontally
+        waveLabel.setLayoutY(10); // Position it at the top
+
+// Font settings
+        waveLabel.setFont(Font.font("Arial", FontWeight.BOLD, 30));
+
+// Text color and shadow for a distressed look
+        waveLabel.setTextFill(Color.DARKGREEN);
+        waveLabel.setEffect(new DropShadow(5, Color.BLACK)); // Adds a shadow effect for a rugged appearance
+
+// Background to enhance the apocalyptic theme
+        waveLabel.setStyle("-fx-background-color: rgba(0, 0, 0, 0.5); -fx-padding: 10px; -fx-background-radius: 5px;");
+
+
+        // Add the heart, health, coin, and gold elements directly to the game board
+        getChildren().addAll(heartIcon, healthLabel, coinIcon, goldLabel, waveLabel);
+    }
+    private Timeline startTimeline;
+    private Timeline secondWaveTimeline;
+    private Timeline lastTimeLine;
 
     private void startGame() {
-        spawnTimeline = new Timeline(new KeyFrame(Duration.seconds(1.5), event -> spawnEnemy()));
-        spawnTimeline.setCycleCount(Timeline.INDEFINITE); // Repeat indefinitely
-        spawnTimeline.play(); // Start spawning enemies
+        // Add 3-second pause before starting the first wave
+        PauseTransition initialPause = new PauseTransition(Duration.seconds(0));
+        initialPause.setOnFinished(event -> {
+            // Start the first wave after the initial pause
+            startTimeline = new Timeline(new KeyFrame(Duration.seconds(1.5), event1 -> spawnFirstWave()));
+            startTimeline.setCycleCount(14);
+            startTimeline.play();
+
+            // Move to the next wave after the first wave ends
+            startTimeline.setOnFinished(event2 -> {
+                // Add 3-second pause before starting Wave 2
+                PauseTransition pause1 = new PauseTransition(Duration.seconds(10));
+                pause1.setOnFinished(event3 -> {
+                    waveLabel.setText("Wave 2");
+                    waveLabel.setTextFill(Color.ORANGE);
+
+                    // Start second wave after the pause
+                    secondWaveTimeline = new Timeline(new KeyFrame(Duration.seconds(1.5), event4 -> spawnSecondWave()));
+                    secondWaveTimeline.setCycleCount(12);
+                    secondWaveTimeline.play();
+
+                    // Move to the next wave after the second wave ends
+                    secondWaveTimeline.setOnFinished(event5 -> {
+                        // Add 3-second pause before starting Wave 3
+                        PauseTransition pause2 = new PauseTransition(Duration.seconds(10));
+                        pause2.setOnFinished(event6 -> {
+                            waveLabel.setText("Wave 3");
+                            waveLabel.setTextFill(Color.RED);
+
+                            // Start third wave after the pause
+                            lastTimeLine = new Timeline(new KeyFrame(Duration.seconds(1.5), event7 -> spawnThirdWave()));
+                            lastTimeLine.setCycleCount(20);
+                            lastTimeLine.play();
+                        });
+                        pause2.play();
+                    });
+                });
+                pause1.play();
+            });
+        });
+        initialPause.play();
 
         new AnimationTimer() {
             @Override
@@ -106,45 +178,84 @@ public class GameBoard extends Pane {
         }.start();
     }
 
+
     private void updateTowers() {
         double elapsedTime = 0.016; // Assuming 60 FPS, so ~16ms per frame
+        List<Projectile> toRemove = new ArrayList<>(); // List to track projectiles to remove
+
         for (Tower tower : towers) {
             tower.update(elapsedTime, enemies, projectiles, this.getWidth(), this.getHeight());
-            // Add newly created projectiles to the game board
-            for (Projectile projectile : projectiles) {
-                if (!getChildren().contains(projectile)) {
-                    getChildren().add(projectile);
+
+            // Check each projectile and add it to the game board if it's visible
+            for (Projectile projectile : new ArrayList<>(projectiles)) { // Use a copy to avoid concurrent modification
+                // Check if the projectile is visible and not already added to the scene
+                if (projectile.getImageView().isVisible() && !getChildren().contains(projectile.getImageView())) {
+                    getChildren().add(projectile.getImageView());
+                }
+
+                // Check if the projectile is out of bounds or has hit a target
+                if (projectile.hasHitTarget() || !projectile.getImageView().isVisible()) {
+                    toRemove.add(projectile);
                 }
             }
         }
+
+        // Remove projectiles that are no longer needed
+        for (Projectile projectile : toRemove) {
+            getChildren().remove(projectile.getImageView());
+            projectiles.remove(projectile); // Remove from the projectiles list
+        }
     }
 
+
     private void updateProjectiles() {
-        List<Projectile> toRemove = new ArrayList<>();
+        // If the game is over, remove all projectiles and return
+        if (gameOver) {
+            for (Projectile projectile : projectiles) {
+                getChildren().remove(projectile.getImageView());
+            }
+            projectiles.clear();
+            return;
+        }
+
+        List<Projectile> toRemoveProjectiles = new ArrayList<>();
         List<Enemy> hitEnemies = new ArrayList<>();
 
-        for (Projectile projectile : projectiles) {
-            projectile.move();
+        for (Projectile projectile : new ArrayList<>(projectiles)) { // Use a copy to avoid concurrent modification
+            if (!gameOver) {
+                projectile.move();
+            }
 
             // Check collision with enemies
-            for (Enemy enemy : enemies) {
-                if (projectile.getBoundsInParent().intersects(enemy.getBoundsInParent())) {
-                    gold++;
-                    goldLabel.setText(String.valueOf(gold));
-                    toRemove.add(projectile);
-                    hitEnemies.add(enemy);
+            for (Enemy enemy : new ArrayList<>(enemies)) { // Use a copy to avoid concurrent modification
+                if (projectile.getBounds().intersects(enemy.getBoundsInParent())) {
+                    int damage = projectile.getDamage(); // Get the damage value from the projectile
+                    enemy.setHp(enemy.getHp() - damage); // Apply the damage to the enemy
+
+                    // If the enemy's HP is 0 or less, prepare it for removal
+                    if (enemy.getHp() <= 0) {
+                        gold += enemy.getGoldReward(); // Add gold based on enemy type
+                        goldLabel.setText(String.valueOf(gold));
+                        hitEnemies.add(enemy); // Mark enemy for removal
+                    }
+
+                    // Set the projectile's ImageView to invisible and mark for removal
+                    projectile.getImageView().setVisible(false);
+                    toRemoveProjectiles.add(projectile); // Mark projectile for removal
                     break; // Break after the first collision to avoid multiple hits
                 }
             }
         }
 
-        // Remove projectiles and hit enemies
-        projectiles.removeAll(toRemove);
-        getChildren().removeAll(toRemove);
-
-        enemies.removeAll(hitEnemies);
-        getChildren().removeAll(hitEnemies);
+        // Remove hit enemies and projectiles after the loop
+        for (Enemy enemy : hitEnemies) {
+            getChildren().remove(enemy);
+            enemies.remove(enemy);
+        }
+        projectiles.removeAll(toRemoveProjectiles);
     }
+
+
 
     private void updateEnemies() {
         List<Enemy> toRemove = new ArrayList<>();
@@ -153,6 +264,7 @@ public class GameBoard extends Pane {
             if (enemy.hasReachedEnd()) {
                 health--;
                 healthLabel.setText(String.valueOf(health));
+                flickerHealthLabel();
                 toRemove.add(enemy); // Mark enemy for removal if it has reached the end
             }
         }
@@ -161,13 +273,34 @@ public class GameBoard extends Pane {
 
         // Check if health has reached 0, and trigger game over
         if (health <= 0) {
+            gameOver = true;
             endGame(); // Call the method to display the game-over screen
         }
     }
+    private void flickerHealthLabel() {
+        Color originalColor = (Color) healthLabel.getTextFill();
+        Color redColor = Color.RED;
+
+        Timeline flickerTimeline = new Timeline(
+                new KeyFrame(Duration.millis(0), e -> healthLabel.setTextFill(redColor)),
+                new KeyFrame(Duration.millis(100), e -> healthLabel.setTextFill(originalColor))
+        );
+        flickerTimeline.setCycleCount(2); // Flicker twice
+        flickerTimeline.play();
+    }
+
 
     private void endGame() {
         // Stop the game (stop enemy spawning and animations)
-        spawnTimeline.stop();
+        if (startTimeline != null && startTimeline.getStatus() == Timeline.Status.RUNNING) {
+            startTimeline.stop();
+        }
+        if (secondWaveTimeline != null && secondWaveTimeline.getStatus() == Timeline.Status.RUNNING) {
+            secondWaveTimeline.stop();
+        }
+        if (lastTimeLine != null && lastTimeLine.getStatus() == Timeline.Status.RUNNING) {
+            lastTimeLine.stop();
+        }
 
         // Create a new layout for the game-over screen
         VBox gameOverScreen = new VBox(30); // Increased spacing for more dramatic separation
@@ -217,29 +350,65 @@ public class GameBoard extends Pane {
     }
 
 
+    private void spawnFirstWave() {
 
 
+            // Define the spawn position or path for the Zombies
+            double[][] path = {
+                    {0 * tileSize, 8 * tileSize}, {3.7 * tileSize, 8 * tileSize},
+                    {3.7 * tileSize, 2 * tileSize}, {12.7 * tileSize, 2* tileSize},
+                    {12.7 * tileSize, 9 * tileSize}, {6.7 * tileSize, 9 * tileSize},
+                    {6.7 * tileSize, 13 * tileSize}, {15.7 * tileSize, 13 * tileSize},
+                    {15.7 * tileSize, 8 * tileSize},{21 * tileSize, 8 * tileSize}
+            };
+
+            Enemy zombie = new Enemy(0, 8 * tileSize, 0.6, path, zombieIMG, zombieWalk, 30,4);
+            enemies.add(zombie);
+            getChildren().add(zombie);
+
+    }
 
 
+    private void spawnSecondWave() {
 
-
-
-
-    private void spawnEnemy() {
-        // Define a hardcoded path
+        // Define the spawn position or path for the Zombies
         double[][] path = {
-                // Start from (4, 3)
-                {0 * tileSize, 11 * tileSize}, {4 * tileSize, 11 * tileSize},
-                {4 * tileSize, 3 * tileSize}, {7 * tileSize, 3 * tileSize},// Move down to (7, 4)
-                {7 * tileSize, 13 * tileSize}, {12 * tileSize, 13 * tileSize},
-                {12 * tileSize, 13 * tileSize},
-                {12 * tileSize, 10 * tileSize}, {19 * tileSize, 10 * tileSize}
+                {0 * tileSize, 8 * tileSize}, {2.7 * tileSize, 8 * tileSize},
+                {2.7 * tileSize, 2 * tileSize}, {11.7 * tileSize, 2* tileSize},
+                {11.7 * tileSize, 9 * tileSize}, {5.7 * tileSize, 9 * tileSize},
+                {5.7 * tileSize, 13 * tileSize}, {14.7 * tileSize, 13 * tileSize},
+                {14.7 * tileSize, 8 * tileSize},{21 * tileSize, 8 * tileSize}
         };
 
-    Enemy enemy = new Enemy(0, 11 * tileSize, 1, path,zombie,zombieWalk);
-        enemies.add(enemy);
-        getChildren().add(enemy);
+        Enemy zombie = new Enemy(0, 8 * tileSize, 1.4, path,worm, wormWalk,80,10);
+        zombie.resize(120,120);
+        enemies.add(zombie);
+        getChildren().add(zombie);
+
     }
+
+
+    private void spawnThirdWave() {
+        // Define the spawn position or path for the Zombies
+        double[][] path = {
+                {0 * tileSize, 7.5 * tileSize}, {3.2 * tileSize, 7.5 * tileSize},
+                {3.2 * tileSize, 1.5 * tileSize}, {12.2 * tileSize, 1.5* tileSize},
+                {12.2 * tileSize, 8.5 * tileSize}, {6.2 * tileSize, 8.5 * tileSize},
+                {6.2 * tileSize, 12.5 * tileSize}, {15.2 * tileSize, 12.5 * tileSize},
+                {15.2 * tileSize, 7.5 * tileSize},{21 * tileSize, 7.5 * tileSize}
+        };
+
+        // Create the enemy
+        Enemy zombie = new Enemy(0, 7.5 * tileSize, 1.1, path,bringer, bringerWalk,300,40);
+
+        // Resize the enemy to make it bigger
+        zombie.resize(96, 96); // Adjust the size as needed
+
+        // Add the enemy to the list and the game board
+        enemies.add(zombie);
+        getChildren().add(zombie);
+    }
+
 
     private void drawTilemap() {
 
@@ -263,6 +432,9 @@ public class GameBoard extends Pane {
                     case 'P':
                         tileImageView.setImage(pathImage);
                         break;
+                    case 'X':
+                        tileImageView.setImage(citySignImage);
+                        break;
                 }
 
                 tileImageView.setX(col * tileSize);
@@ -274,6 +446,8 @@ public class GameBoard extends Pane {
     // Map to store the towers based on their row and column positions
     private Map<String, ImageView> towerMap = new HashMap<>();
 
+
+
     // Modify the handleSlotClick method to allow changing the tower
     private void handleSlotClick(int row, int col) {
         // Create and show the tower selection window
@@ -282,46 +456,31 @@ public class GameBoard extends Pane {
         towerSelectionStage.setTitle("Select Tower");
         towerSelectionStage.setWidth(500);
         towerSelectionStage.setHeight(500);
-        VBox vbox = new VBox(10); // VBox with 10 pixels spacing between elements
-        vbox.setStyle("-fx-padding: 10; -fx-background-color: #739900; -fx-alignment: center;"); // Add padding and background style
+        towerSelectionStage.getIcons().add(woodTower);
 
-        // Define tower options (you can add more towers with their respective images and properties)
-        Image tower1Image = veggiesCart; // Assuming you've already loaded this image
-        //Image tower2Image = new Image("\"C:\\\\Users\\\\Public\\\\Documents\\\\JavaTowerDefenseGame\\\\src\\\\main\\\\resources\\\\Assets\\\\veggies_cart.png\""); // Replace with actual image path
+        GridPane gridPane = new GridPane();
+        gridPane.setHgap(50); // Increased horizontal gap between cells
+        gridPane.setVgap(50); // Increased vertical gap between cells
+        gridPane.setStyle("-fx-padding: 20; -fx-background-color: #739900; -fx-alignment: center;"); // Adjusted padding
+
 
         // Tower 1: Veggies Cart
-        VBox tower1Box = new VBox(5);
-        tower1Box.setLayoutX(15);
-        tower1Box.setLayoutY(50);
+        VBox tower1Box = new VBox(10);
+        tower1Box.setStyle("-fx-alignment: center; -fx-background-color: #004d00; -fx-border-color: #fff; -fx-border-width: 2px; -fx-padding: 10;");
 
-        ImageView tower1ImageView = new ImageView(tower1Image);
+        ImageView tower1ImageView = new ImageView(veggiesCart);
         tower1ImageView.setFitWidth(100); // Adjust image size as needed
         tower1ImageView.setFitHeight(100);
         tower1ImageView.setPreserveRatio(true);
 
-        Label tower1NameLabel = new Label("Veggies Cart");
+        Label tower1NameLabel = new Label("Vegetables");
         tower1NameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        Label tower1PriceLabel = new Label("Price: 50 Gold");
+        Label tower1PriceLabel = new Label("Price: 5 Gold");
         tower1PriceLabel.setStyle("-fx-text-fill: white;");
 
-        // Tower 2: Example Tower
-        VBox tower2Box = new VBox(5);
-        tower2Box.setStyle("-fx-alignment: center;");
-
-        ImageView tower2ImageView = new ImageView(veggiesCart);
-        tower2ImageView.setFitWidth(100);
-        tower2ImageView.setFitHeight(100);
-        tower2ImageView.setPreserveRatio(true);
-
-        Label tower2NameLabel = new Label("Tower 2 (Yellow)");
-        tower2NameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-        Label tower2PriceLabel = new Label("Price: 75 Gold");
-        tower2PriceLabel.setStyle("-fx-text-fill: white;");
-
-        // Handle selection and placement for Tower 1
         tower1ImageView.setOnMouseClicked(e -> {
             if (gold >= 5) { // Check if player has enough gold
-                placeTower(row, col, "Veggies Cart", tower1Image, 2, 10); // Customize fireRate, damage
+                placeTower(row, col, "Veggies Cart", veggiesCart, 2, 10,tomato); // Customize fireRate, damage
                 gold -= 5; // Deduct the gold for this tower
                 goldLabel.setText(String.valueOf(gold)); // Update the gold display
                 towerSelectionStage.close(); // Close the selection window
@@ -330,33 +489,102 @@ public class GameBoard extends Pane {
             }
         });
 
-        // Handle selection and placement for Tower 2
+        tower1Box.getChildren().addAll(tower1NameLabel, tower1ImageView, tower1PriceLabel);
+        gridPane.add(tower1Box, 0, 0); // Add to cell (0, 0)
+
+        // Tower 2: Tower 2 (Red)
+        VBox tower2Box = new VBox(10);
+        tower2Box.setStyle("-fx-alignment: center; -fx-background-color: #004d00; -fx-border-color: #fff; -fx-border-width: 2px; -fx-padding: 10;");
+
+        ImageView tower2ImageView = new ImageView(archerTower);
+        tower2ImageView.setFitWidth(100);
+        tower2ImageView.setFitHeight(100);
+        tower2ImageView.setPreserveRatio(true);
+
+        Label tower2NameLabel = new Label("Bomb Tower");
+        tower2NameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        Label tower2PriceLabel = new Label("Price: 50 Gold");
+        tower2PriceLabel.setStyle("-fx-text-fill: white;");
+
         tower2ImageView.setOnMouseClicked(e -> {
-            if (gold >= 75) { // Check if player has enough gold
-                placeTower(row, col, "Tower 2 (Yellow)", veggiesCart, 1.5, 15); // Customize fireRate, damage
-                gold -= 75; // Deduct the gold for this tower
-                goldLabel.setText(String.valueOf(gold)); // Update the gold display
+            if (gold >= 50) { // Check if player has enough gold
+                placeTower(row, col, "Tower 2 (Red)", archerTower, 2, 30, bomb);
+                gold -= 50;
+                goldLabel.setText(String.valueOf(gold));
                 towerSelectionStage.close();
             } else {
                 System.out.println("Not enough gold!");
             }
         });
 
-        // Add the towers to the VBox
-        tower1Box.getChildren().addAll(tower1NameLabel, tower1ImageView, tower1PriceLabel);
         tower2Box.getChildren().addAll(tower2NameLabel, tower2ImageView, tower2PriceLabel);
+        gridPane.add(tower2Box, 0, 1); // Add to cell (0, 1)
 
-        vbox.getChildren().addAll(tower1Box, tower2Box); // Add both towers to the main VBox
+        // Tower 3: Tower 3 (Green)
+        VBox tower3Box = new VBox(10);
+        tower3Box.setStyle("-fx-alignment: center; -fx-background-color: #004d00; -fx-border-color: #fff; -fx-border-width: 2px; -fx-padding: 10;");
+
+        ImageView tower3ImageView = new ImageView(woodTower);
+        tower3ImageView.setFitWidth(100);
+        tower3ImageView.setFitHeight(100);
+        tower3ImageView.setPreserveRatio(true);
+
+        Label tower3NameLabel = new Label("Wooden Tower");
+        tower3NameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        Label tower3PriceLabel = new Label("Price: 20 Gold");
+        tower3PriceLabel.setStyle("-fx-text-fill: white;");
+
+        tower3ImageView.setOnMouseClicked(e -> {
+            if (gold >= 20) { // Check if player has enough gold
+                placeTower(row, col, "Tower 3 (Green)", woodTower, 2, 20,rocks);
+                gold -= 20; // Deduct the gold for this tower
+                goldLabel.setText(String.valueOf(gold)); // Update the gold display
+                towerSelectionStage.close(); // Close the selection window
+            } else {
+                System.out.println("Not enough gold!");
+            }
+        });
+
+        tower3Box.getChildren().addAll(tower3NameLabel, tower3ImageView, tower3PriceLabel);
+        gridPane.add(tower3Box, 1, 0); // Add to cell (1, 0)
+
+        // Tower 4: Tower 4 (Blue)
+        VBox tower4Box = new VBox(10);
+        tower4Box.setStyle("-fx-alignment: center; -fx-background-color: #004d00; -fx-border-color: #fff; -fx-border-width: 2px; -fx-padding: 10;");
+
+        ImageView tower4ImageView = new ImageView(redMoon);
+        tower4ImageView.setFitWidth(100);
+        tower4ImageView.setFitHeight(100);
+        tower4ImageView.setPreserveRatio(true);
+
+        Label tower4NameLabel = new Label("Red Moon");
+        tower4NameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
+        Label tower4PriceLabel = new Label("Price: 100 Gold");
+        tower4PriceLabel.setStyle("-fx-text-fill: white;");
+
+        tower4ImageView.setOnMouseClicked(e -> {
+            if (gold >= 100) { // Check if player has enough gold
+                placeTower(row, col, "Tower 4 (Blue)", redMoon, 2, 50,spark);
+                gold -= 100; // Deduct the gold for this tower
+                goldLabel.setText(String.valueOf(gold)); // Update the gold display
+                towerSelectionStage.close(); // Close the selection window
+            } else {
+                System.out.println("Not enough gold!");
+            }
+        });
+
+        tower4Box.getChildren().addAll(tower4NameLabel, tower4ImageView, tower4PriceLabel);
+        gridPane.add(tower4Box, 1, 1); // Add to cell (1, 1)
 
         // Create the scene and show the selection window
-        Scene scene = new Scene(vbox, 300, 400); // Adjust scene size as necessary
+        Scene scene = new Scene(gridPane, 500, 500); // Adjust scene size as necessary
         towerSelectionStage.setScene(scene);
         towerSelectionStage.showAndWait();
     }
 
 
 
-    private void placeTower(int row, int col, String type, Image img, double fireRate, double damage) {
+    private void placeTower(int row, int col, String type, Image img, double fireRate, int damage, Image projectileImg) {
         // Remove the existing tower (if any) from the same slot
         String key = row + "," + col;
         if (towerMap.containsKey(key)) {
@@ -382,7 +610,7 @@ public class GameBoard extends Pane {
         getChildren().add(grassTile);
 
         // Create the new Tower object
-        Tower tower = new Tower(col * tileSize, row * tileSize, tileSize, type, img, fireRate, damage);
+        Tower tower = new Tower(col * tileSize, row * tileSize, tileSize, type, img, projectileImg, fireRate, damage);
 
         // Center the tower image within the tile by adjusting its position
         ImageView towerImageView = tower.getImageView();
@@ -406,6 +634,5 @@ public class GameBoard extends Pane {
         // Store the new tower in the map
         towerMap.put(key, towerImageView);
     }
-
 
 }

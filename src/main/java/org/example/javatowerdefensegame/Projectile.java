@@ -1,20 +1,24 @@
 package org.example.javatowerdefensegame;
 
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.geometry.Bounds;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
-public class Projectile extends Circle {
+public class Projectile {
     private double speed;
     private double directionX;
     private double directionY;
     private double boardWidth;
     private double boardHeight;
+    private ImageView imageView;
+    private int damage;  // Add damage property
 
-    public Projectile(double startX, double startY, double targetX, double targetY, double speed, Color color, double boardWidth, double boardHeight) {
-        super(startX, startY, 5); // Radius of 5, adjust as needed
+    // Updated constructor to include size and damage parameters
+    public Projectile(double startX, double startY, double targetX, double targetY, double speed, Image img, double boardWidth, double boardHeight, double size, int damage) {
         this.speed = speed;
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
+        this.damage = damage;  // Initialize damage
 
         // Calculate direction based on target
         double deltaX = targetX - startX;
@@ -23,20 +27,40 @@ public class Projectile extends Circle {
         this.directionX = deltaX / length;
         this.directionY = deltaY / length;
 
-        this.setFill(color);
+        // Create an ImageView for the projectile
+        this.imageView = new ImageView(img);
+        this.imageView.setX(startX);
+        this.imageView.setY(startY);
+        this.imageView.setFitWidth(size); // Set projectile width
+        this.imageView.setFitHeight(size); // Set projectile height
+        this.imageView.setPreserveRatio(true);
     }
 
     public void move() {
-        setCenterX(getCenterX() + directionX * speed);
-        setCenterY(getCenterY() + directionY * speed);
+        imageView.setX(imageView.getX() + directionX * speed);
+        imageView.setY(imageView.getY() + directionY * speed);
 
         // Check if projectile is out of bounds
-        if (getCenterX() < 0 || getCenterX() > boardWidth || getCenterY() < 0 || getCenterY() > boardHeight) {
-            setVisible(false);  // Mark as invisible, or you can use another method to mark for removal
+        if (imageView.getX() < 0 || imageView.getX() > boardWidth || imageView.getY() < 0 || imageView.getY() > boardHeight) {
+            imageView.setVisible(false);  // Mark as invisible
         }
     }
 
     public boolean hasHitTarget() {
-        return !isVisible(); // Indicates if projectile is out of bounds or hit a target
+        return !imageView.isVisible(); // Indicates if projectile is out of bounds or hit a target
+    }
+
+    public ImageView getImageView() {
+        return imageView;
+    }
+
+    // Method to get the bounds of the projectile
+    public Bounds getBounds() {
+        return imageView.getBoundsInParent();
+    }
+
+    // New method to get the damage value
+    public int getDamage() {
+        return damage;
     }
 }
