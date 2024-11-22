@@ -58,7 +58,7 @@ public class Main extends Application {
         startButton.setOnAction(event -> {
             try {
                 // Load the game map and setup the game scene
-                char[][] tilemap = TilemapLoader.loadTilemap("C:\\Users\\Public\\Documents\\JavaTowerDefenseGame\\src\\main\\resources\\map.csv");
+                char[][] tilemap = TilemapLoader.loadTilemap("build/resources/main/map.csv");
                 GameBoard gameBoard = new GameBoard(tilemap, 40); // Adjust tile size as needed
 
                 StackPane gameRoot = new StackPane();

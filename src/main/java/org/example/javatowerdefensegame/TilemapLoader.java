@@ -1,12 +1,15 @@
 package org.example.javatowerdefensegame;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class TilemapLoader {
 
     public static char[][] loadTilemap(String filePath) throws IOException {
+        System.out.println(System.getProperty("java.class.path"));
+
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
         int rows = 0;

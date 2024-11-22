@@ -30,6 +30,7 @@ application {
 }
 
 javafx {
+
   version = '19.0.2'
   modules = ['javafx.controls', 'javafx.fxml']
 }
@@ -54,3 +55,4 @@ jlink {
 jlinkZip {
   group = 'distribution'
 }
+
